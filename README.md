@@ -29,12 +29,14 @@ Self-adaptation for configuration files with BiGUL
   
     ghci -isrc -iParsers/(WS)_Parser -iParsers/TypesAndFunctions Transfo(WS).hs -XTemplateHaskell -fcontext-stack=500 -XFlexibleContexts
   
-  replacing every instance of "(WS)" by either "Apache" or "Nginx".
+  replacing every instance of "(WS)" by either "Apache" or "Nginx" depending on the transformation you want to run.
   
   Once the program is loaded, the following commands are available:
   - extractConfig: performs the *get* direction and shows the resulting view in console. This does **NOT** actually update the current view.
   - putbackConfig: performs the *putback* and shows the resulting new configuration file in console. This does **NOT** actually update the current configuration file.
   - extractConfigToFile: performs the *get* and rewrites the view file.
   - putbackConfigToFile: performs the *putback* and rewrites the source configuration file.
+
+  Some changes can be done in either in the configuration files or in the view files in order to test our program. However, some very specific instructions are not handled.
   
   **Warning**: if changes are made to the view file, the program needs to be reloaded by running ":r" in ghc in order for these changes to be taken into account. This is due to the view file being imported when the BX program loads and not dynamically when running a command.

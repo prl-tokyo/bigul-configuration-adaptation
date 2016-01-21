@@ -1,7 +1,8 @@
 {-# LANGUAGE TypeOperators, TypeFamilies, FlexibleContexts, DeriveGeneric  #-}
---Test transfo for webserver source--
 
---imports
+---------
+--IMPORTS
+---------
 ----BiGUL imports
 import Generics.BiGUL
 import Generics.BiGUL.AST
@@ -15,12 +16,10 @@ import TreeConfigApacheFiller
 ----apache imports
 import Apache_output
 import TypeFiles.ApacheTypes
-
-import TypeFiles.Common
 import ApacheDefaultValues
+import TypeFiles.Common
 
-import Transfo_Apache_test_input
-
+--source and view records defined as BiGUL types
 deriveBiGULGeneric ''ApacheWebserver
 deriveBiGULGeneric ''VirtualHost
 deriveBiGULGeneric ''Directory
@@ -32,27 +31,21 @@ deriveBiGULGeneric ''CommonWebserver
 deriveBiGULGeneric ''VServer
 deriveBiGULGeneric ''VLocation
 
---sample view for testing
+--importing view
 apacheView' :: CommonWebserver
 apacheView' = apacheOutput
 
-apacheSource :: ApacheWebserver
-apacheSource = apacheTestInput
-
-
+-----------------
 --TRANSFORMATIONS
+-----------------
 --global transformation
 transApache :: MonadError' e m => DefaultValues -> BiGUL m ApacheWebserver CommonWebserver
 transApache defaults = $(rearrAndUpdate [p| CommonWebserver { 
-    {-serving static content-}
     vRoot = root, 
     vIndex = index, 
-    {-client connections-}
     vKeepaliveTimeout = kaTimeout, 
     vKeepaliveMaxRequests = kaMaxRequests, 
-    {-speed/quality-}
     vSendfile = sendfile, 
-    {-ssl-}
     vSSL = ssl, 
     vSSLCACertificate = caCertif, 
     vSSLCARevocationFile = caRevocFile, 
@@ -71,7 +64,6 @@ transApache defaults = $(rearrAndUpdate [p| CommonWebserver {
     aEnableSendfile = sendfile, 
     aKeepAliveTimeout = kaTimeout, 
     aMaxKeepAliveRequests = kaMaxRequests, 
-    {-ssl-}
     aSSLEngine = ssl, 
     aSSLCACertificateFile = caCertif, 
     aSSLCARevocationFile = caRevocFile, 
@@ -82,7 +74,6 @@ transApache defaults = $(rearrAndUpdate [p| CommonWebserver {
     aSSLProtocol = protocols, 
     aSSLVerifyClient = verifyClient, 
     aSSLVerifyDepth = verifyDepth, 
-    {-servers-}
     aVirtualHosts = servers 
 }
  |] [d| root = addDefault (d_DocumentRoot defaults);
@@ -112,20 +103,17 @@ transServer defaults = Align
     --source condition
     (\ _ -> return True)
     --match
+    --defines on which field the records will match between source and view
     (\ (VirtualHost {sServerName = (Just sName)}) (VServer {vServNames = vNames}) -> return ((head sName) == (head vNames)))
-    --b
+    --trans
     ($(rearrAndUpdate [p| VServer {
         vListen = listen, 
         vServNames = servNames, 
-        {-serving static content-}
         vServRoot = servRoot, 
         vServIndex = servIndex, 
-        {-client connections-}
         vServKeepaliveTimeout = servKaTimeout, 
         vServKeepaliveMaxRequests = servKaMaxRequests, 
-        {-speed/quality-}
         vServSendfile = servSendfile, 
-        {-ssl-}
         vServSSL = servSSL, 
         vServSSLCACertificate = servCaCertif, 
         vServSSLCARevocationFile = servCaRevocFile, 
@@ -139,16 +127,13 @@ transServer defaults = Align
         vLocations = servLocations
     } |] [p| VirtualHost { 
         sVirtualHostAddress = listen, 
-        --sDirectory = Nothing, 
         sDocumentRoot = servRoot, 
         sEnableSendfile = servSendfile, 
-        --sFiles = Nothing, 
         sKeepAliveTimeout = servKaTimeout, 
         sLocation = servLocations, 
         sMaxKeepAliveRequests = servKaMaxRequests, 
         sServerName = servNames, 
         sDirectoryIndex = servIndex, 
-        {-ssl-}
         sSSLEngine = servSSL, 
         sSSLCACertificateFile = servCaCertif, 
         sSSLCARevocationFile = servCaRevocFile, 
@@ -181,19 +166,16 @@ transServer defaults = Align
                 $(branch [p| (_:_) |]) $ (Compose ($(rearr [| \ x -> (Just x) |]) Replace) (transLocation defaults))
                                    ]
     |] ))
-    --create
+    --create 
+    --adds a new server to the source if a new one was added to the view
     (\ VServer {
         vListen = listen, 
         vServNames = servNames, 
-        {-serving static content-}
         vServRoot = servRoot, 
         vServIndex = servIndex, 
-        {-client connections-}
         vServKeepaliveTimeout = servKaTimeout, 
         vServKeepaliveMaxRequests = servKaMaxRequests, 
-        {-speed/quality-}
         vServSendfile = servSendfile, 
-        {-ssl-}
         vServSSL = servSSL, 
         vServSSLCACertificate = servCaCertif, 
         vServSSLCARevocationFile = servCaRevocFile, 
@@ -220,7 +202,6 @@ transServer defaults = Align
         sServerName = emptyListCheck servNames, 
         sDirectoryIndex = emptyCheck servIndex, 
         sCustomLog = Nothing, 
-        {-ssl-}        
         sSSLEngine = emptyCheck servSSL, 
         sSSLCACertificateFile = emptyCheck servCaCertif, 
         sSSLCARevocationFile = emptyCheck servCaRevocFile, 
@@ -270,7 +251,6 @@ transServer defaults = Align
         sTraceEnable = Nothing, 
         sUseCanonicalName = Nothing, 
         sUseCanonicalPhysicalPort = Nothing, 
-        {-alias-}
         sAlias = Nothing, 
         sAliasMatch = Nothing, 
         sRedirect = Nothing, 
@@ -279,7 +259,6 @@ transServer defaults = Align
         sRedirectTemp = Nothing, 
         sScriptAlias = Nothing, 
         sScriptAliasMatch = Nothing, 
-        {-autoindex-}
         sAddAlt = Nothing, 
         sAddAltByEncoding = Nothing, 
         sAddAltByType = Nothing, 
@@ -296,36 +275,28 @@ transServer defaults = Align
         sIndexOrderDefault = Nothing, 
         sIndexStyleSheet = Nothing, 
         sReadmeName = Nothing, 
-        {-cgi mod-}
         sScriptLog = Nothing, 
         sScriptLogBuffer = Nothing, 
         sScriptLogLength = Nothing, 
-        {-cgid-}
         sCGIDScriptTimeout = Nothing, 
-        {-dir-}
         sDirectoryCheckHandler = Nothing, 
         sIndexRedirect = Nothing, 
         sDirectorySlash = Nothing, 
         sFallbackResource = Nothing, 
-        {-env-}
         sPassEnv = Nothing, 
         sSetEnv = Nothing, 
         sUnsetEnv = Nothing, 
-        {-filter-}
         sAddOutputFilterByType = Nothing, 
         sFilterChain = Nothing, 
         sFilterDeclare = Nothing, 
         sFilterProtocol = Nothing, 
         sFilterProvider = Nothing, 
         sFilterTrace = Nothing, 
-        {-imap-}
         sImapBase = Nothing, 
         sImapDefault = Nothing, 
         sImapMenu = Nothing, 
-        {-logconf-}
         sLogFormat = Nothing, 
         sTransferLog = Nothing, 
-        {-mime-}
         sAddCharset = Nothing, 
         sAddEncoding = Nothing, 
         sAddHandler = Nothing, 
@@ -342,21 +313,16 @@ transServer defaults = Align
         sRemoveLanguage = Nothing, 
         sRemoveOutputFilter = Nothing, 
         sRemoveType = Nothing, 
-        {-nego-}
         sCacheNegotiatedDocs = Nothing, 
         sForceLanguagePriority = Nothing, 
         sLanguagePriority = Nothing, 
-        {-reflector-}
         sReflectorHeader = Nothing, 
-        {-setenvif-}
         sBrowserMatch = Nothing, 
         sBrowserMatchNoCase = Nothing, 
         sSetEnvIf = Nothing, 
         sSetEnvIfExpr = Nothing, 
         sSetEnvIfNoCase = Nothing, 
-        {-userdir-}
         sUserDir = Nothing, 
-        {-ssl-}
         sSSLCACertificatePath = Nothing, 
         sSSLCADNRequestFile = Nothing, 
         sSSLCADNRequestPath = Nothing, 
@@ -396,17 +362,15 @@ transServer defaults = Align
 --locations transformation
 transLocation :: MonadError' e m => DefaultValues -> BiGUL m [Location] [VLocation]
 transLocation defaults = Align
-    -- source condition
+    --source condition
     (\ _ -> return True)
-    -- match
+    --match
+    --defines on which field the records will match between source and view
     (\ (Location { lPath = (Just sPath) } ) (VLocation { vLocationPath = vPath } ) -> return (sPath == vPath))
-    -- b
+    --trans
     ($(rearrAndUpdate [p| VLocation {
         vLocationPath = locPath, 
-        {-serving static content-}
         vLocIndex = locIndex, 
-        {-client connections-}
-        {-speed/quality-}
         vLocSendfile = locSendfile
     } |] [p| Location {
         lPath = locPath, 
@@ -414,24 +378,19 @@ transLocation defaults = Align
             dDirectoryIndex = locIndex, 
             dEnableSendFile = locSendfile
         }
-        
     } |] [d| locPath = $(rearr [| \ x -> (Just x) |]) Replace;
              locIndex = addDefault (d_DirectoryIndex defaults);
              locSendfile = addDefault (d_EnableSendfile defaults)
     |] ))
-    -- create
+    --create
+    --adds a new location to the source if a new one was added to the view
     (\ VLocation { 
         vLocationPath = locPath, 
-        {-serving static content-}
         vLocIndex = locIndex, 
-        {-client connections-} 
-        {-speed/quality-}
         vLocSendfile = locSendfile
     } -> return Location {
-        {-identifiers-}
         lMatch = (Just False), 
         lPath = (Just locPath), 
-        {-directives-}
         lDirDirectives = Just DirDirectives {
             dAcceptPathInfo = Nothing, 
             dAddDefaultCharset = Nothing, 
@@ -553,8 +512,10 @@ transLocation defaults = Align
     -- conceal
     (\ _ -> return Nothing)
 
-
+------------------------
 --DEFAULT VALUES GESTION
+------------------------
+--defaults gestion for simple fields
 addDefault :: MonadError' e m => String -> BiGUL m (Maybe String) String
 addDefault def = CaseV [ ((return . (== def)), 
     (CaseS [ $(normal [p| Nothing |]) $ Rearr (RConst def) (EIn (ELeft (EConst ()))) Replace, 
@@ -564,6 +525,7 @@ addDefault def = CaseV [ ((return . (== def)),
     ($(rearr [| \ x -> (Just x) |]) Replace) )
                        ]
 
+--defaults gestion for list fields
 addDefaultList :: MonadError' e m => String -> BiGUL m (Maybe [String]) [String]
 addDefaultList def = CaseV [ ((return . (== [def])), 
     (CaseS [ $(normal [p| Nothing |]) $ Rearr (RConst [def]) (EIn (ELeft (EConst ()))) Replace, 
@@ -573,6 +535,7 @@ addDefaultList def = CaseV [ ((return . (== [def])),
     ($(rearr [| \ x -> (Just x) |]) Replace) )
                            ]
 
+--defaults gestion for the VerifyClient directive
 verifyClientDefault :: MonadError' e m => String -> BiGUL m (Maybe String) String
 verifyClientDefault def = CaseV [ ((return . (liftM2 (&&) (== def) (== "yes"))), 
     (CaseS [ $(normal [p| Nothing |]) $ Rearr (RConst def) (EIn (ELeft (EConst ()))) Replace, 
@@ -594,20 +557,15 @@ verifyClientDefault def = CaseV [ ((return . (liftM2 (&&) (== def) (== "yes"))),
     ($(rearr [| \ x -> (Just x) |]) Replace) )
                                 ]
 
-
---functions for testing purpose
-testPut :: BiGUL (Either ErrorInfo) s v -> s -> v -> Either ErrorInfo s
-testPut u s v = catchBind (put u s v) (\s' -> Right s') (\e -> Left e)
-
-testGet :: BiGUL (Either ErrorInfo) s v -> s -> Either ErrorInfo v
-testGet u s = catchBind (get u s) (\v' -> Right v') (\e -> Left e)
-
-
+------------
 --OPERATIONS
---extract configuration from file to view
+------------
+--performs get and show extracted view in console
+--does not override existing view
 getApache1 x = (catchBind (get (transApache defaults) x) (\v -> Right (show v)) (\e -> Left e))
 extractConfig = parseTreeApache "apache.conf" >>= \(Right tree) -> return (createSourceApache tree) >>= return . getApache1
 
+--performs get and rewrites view file
 extractConfigToFile = do
   content <- extractConfig
   case content of
@@ -615,10 +573,12 @@ extractConfigToFile = do
     Right r -> writeFile "Apache_output.hs" ("module Apache_output where"++"\n"++"import TypeFiles.Common"++"\n"++"apacheOutput :: CommonWebserver"++"\n"++"apacheOutput = "++r)
 
 
---put view back in source and print
+--performs putback and show new source in console
+--does not override existing source config file
 putApache1 x = catchBind (put (transApache defaults) x apacheView') (Right . printApache) Left
 putbackConfig = parseTreeApache "apache.conf" >>= \(Right tree) -> return (createSourceApache tree) >>= return . putApache1
 
+--performs putback and rewrites source config file
 putbackConfigToFile = do
   content <- putbackConfig
   case content of
@@ -626,15 +586,28 @@ putbackConfigToFile = do
     Right r -> writeFile "apache.conf" ((show r))
 
 
+-------------------------------------
+--OTHER FUNCTIONS FOR TESTING PURPOSE
+-------------------------------------
+testPut :: BiGUL (Either ErrorInfo) s v -> s -> v -> Either ErrorInfo s
+testPut u s v = catchBind (put u s v) (\s' -> Right s') (\e -> Left e)
+
+testGet :: BiGUL (Either ErrorInfo) s v -> s -> Either ErrorInfo v
+testGet u s = catchBind (get u s) (\v' -> Right v') (\e -> Left e)
+
 --demo function for showing source
 showSource = parseTreeApache "apache.conf" >>= \(Right tree) -> return (createSourceApache tree) >>= return . show
 
-putbackNoPrint = catchBind (put (transApache defaults) apacheSource apacheView') (Right . show) Left
-
+-----------------------
 --OTHER ANNEX FUNCTIONS
+-----------------------
+--replaces an empty field by Nothing
+--used when creating a new element in the source
 emptyCheck :: String -> Maybe String
 emptyCheck input = if (input == "") then Nothing else (Just input)
 
+--replaces an empty list by Nothing
+--used when creating a new element in the source
 emptyListCheck :: [String] -> Maybe [String]
 emptyListCheck input = if (input == []) then Nothing else (Just input) 
 

@@ -19,8 +19,7 @@ getValue (TreeFile name instructionList treeFileList) instructionName =
 	lookup instructionName instructionList
 --}}}
 
---{{{ Function that will return a list of value 
---for the same instruction
+--{{{ Function that will return a list of value for the same instruction
 getValueList :: TreeFile -> String -> Maybe [String]
 getValueList (TreeFile name instructionList treeFileList) instructionName = 
 	if (elem instructionName (map fst instructionList)) then 
@@ -28,8 +27,7 @@ getValueList (TreeFile name instructionList treeFileList) instructionName =
 	Nothing
 --}}}
 
---{{{ Function that returns a TreeFile according to a Path 
---beginning from a node of a TreeFile
+--{{{ Function that returns a TreeFile according to a Path beginning from a node of a TreeFile
 giveTree :: [TreeFile] -> [String] -> [TreeFile]
 giveTree [] [y] = []
 giveTree ((TreeFile name instructionList treeList):xs) [y] = if (name==y) then 

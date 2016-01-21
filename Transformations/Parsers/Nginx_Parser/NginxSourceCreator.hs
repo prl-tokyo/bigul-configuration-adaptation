@@ -1,22 +1,25 @@
 module NginxSourceCreator where
 
---Modules import
+--{{{ Modules import
 import TreeConfigNginxFiller
 import TypesAndFunctions
+--}}}
 
---Haskell import
+--{{{ Haskell import
 import Text.Peggy
 import TypeFiles.NginxTypes
 import Control.Monad
 import Control.Monad.Reader
+--}}}
 
---Function that will construct an AccessRule list if values of accessRule found and put nothing if not
+--{{{ Function that will construct an AccessRule list if values of accessRule found and put nothing if not
 getAccessRules :: TreeFile -> Maybe [AccessRule]
 getAccessRules (TreeFile name instructionList treeFileList) = if ((elem "allow" (map fst instructionList)) || (elem "deny" (map fst instructionList))) then
 	Just (filter ((liftM2 (||) (=="allow") (=="deny")) . fst) instructionList) else
 	Nothing
+--}}}
 
---Function that will contruct an nEvents type by returning nothing if no event context found and returning a Event type if found
+--{{{ Function that will contruct an nEvents type by returning nothing if no event context found and returning a Event type if found
 getEvents :: TreeFile -> Maybe Events
 getEvents tree = if (isInChildren tree "events") then
 	Just Events {
@@ -29,8 +32,9 @@ getEvents tree = if (isInChildren tree "events") then
 		eWorkerConnections = getValue (head (giveTree [tree] ["root","events"])) "worker_connections"
 	} else
 	Nothing
+--}}}
 
---Function that will contruct an nHttp type by returning nothing if no Http context found and returning a Http type if found
+--{{{ Function that will contruct an nHttp type by returning nothing if no Http context found and returning a Http type if found
 getHttp :: TreeFile -> Maybe Http
 getHttp tree = if (isInChildren tree "http") then
 	Just Http {
@@ -179,15 +183,17 @@ getHttp tree = if (isInChildren tree "http") then
 		hVariablesHashMaxSize = getValue (head (giveTree [tree] ["root","http"])) "variables_hash_max_size"
 	} else
 	Nothing
+--}}}
 
---Function that will contruct a hServer type by returning nothing if no Server context found and returning a list of Server if found
+--{{{ Function that will contruct a hServer type by returning nothing if no Server context found and returning a list of Server if found
 getServers :: TreeFile -> Maybe [Server]
 getServers tree =  if (isInChildren (head (giveTree [tree] ["root","http"])) "server") then
 	Just (map getServerValues (giveTree [tree] ["root","http","server"])) 
 	else
 	Nothing
+--}}}
 
---Function that will construct a Server type using the server node (will always be current node)
+--{{{ Function that will construct a Server type using the server node (will always be current node)
 getServerValues :: TreeFile -> Server
 getServerValues tree = Server {
 	sAccessRule = getAccessRules tree,
@@ -329,15 +335,17 @@ getServerValues tree = Server {
 	sTypesHashMaxSize = getValue tree "types_hash_max_size",
 	sUnderscoresInHeaders = getValue tree "underscores_in_headers"
 	}
+--}}}
 
---Function that will contruct a sLocation type by returning nothing if no Location context found and returning a list of Location if found
+--{{{ Function that will contruct a sLocation type by returning nothing if no Location context found and returning a list of Location if found
 getLocationsNginx :: TreeFile -> [String] -> Maybe [Location]
 getLocationsNginx tree path =  if (isInChildren tree "location") then
 	Just (map getLocationValuesNginx (giveTree [tree] path)) 
 	else
 	Nothing
+--}}}
 
---Function that will construct a Location type using the server node (will always be current node)
+--{{{ Function that will construct a Location type using the server node (will always be current node)
 getLocationValuesNginx :: TreeFile -> Location
 getLocationValuesNginx tree = Location {
 	lLocationPath = getValue tree "location_path",
@@ -450,8 +458,9 @@ getLocationValuesNginx tree = Location {
 	lTypesHashBucketSize = getValue tree "types_hash_bucket_size",
 	lTypesHashMaxSize = getValue tree "types_hash_max_size"
 	}
+--}}}
 
---Function that will put the Tree into the source type
+--{{{ Function that will put the Tree into the source type
 createSourceNginx :: TreeFile -> NginxWebserver
 createSourceNginx tree = NginxWebserver {
 	nDaemon = getValue tree "daemon",
@@ -473,7 +482,9 @@ createSourceNginx tree = NginxWebserver {
 	nEvents = getEvents tree, 
 	nHttp = getHttp tree
 }
+--}}}
 
---Function that print the resulting source
+--{{{ Function that print the resulting source
 printSourceNginx :: IO ()
-printSourceNginx = parseTreeNginx "nginx.conf" >>= \(Right tree) -> print (createSourceNginx tree) 
+printSourceNginx = parseTreeNginx "nginx.conf" >>= \(Right tree) -> print (createSourceNginx tree)
+--}}}

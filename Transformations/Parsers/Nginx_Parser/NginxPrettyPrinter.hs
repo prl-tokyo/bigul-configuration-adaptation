@@ -1,15 +1,17 @@
 module NginxPrettyPrinter where
 
---Modules imports
+--{{{ Modules imports
 import TreeConfigNginxFiller
 import NginxSourceCreator
 import TypeFiles.NginxTypes
 import TypesAndFunctions
+--}}}
 
---Haskell imports
+--{{{ Haskell imports
 import Text.PrettyPrint
+---}}}
 
---Function that will pretty print the NginxWebserver
+--{{{ Function that will pretty print the NginxWebserver
 printNginx :: NginxWebserver -> Doc
 printNginx source = printMaybe (printSimpleInstruction "daemon") (nDaemon source)
 	$$ printMaybe (printSimpleInstruction "error_log") (nErrorLog source)
@@ -28,8 +30,9 @@ printNginx source = printMaybe (printSimpleInstruction "daemon") (nDaemon source
 	$$ printMaybe (printSimpleInstruction "working_directory") (nWorkingDirectory source)
 	$$ printMaybe printEvents (nEvents source)
 	$$ printMaybe printHttp (nHttp source)
+--}}}
 	
---Function that will print the events context
+--{{{ Function that will print the events context
 printEvents :: Events -> Doc
 printEvents source = text "events {"
 	$$ nest 5 (printMaybe (printSimpleInstruction "accept_mutex") (eAcceptMutex source))
@@ -40,8 +43,9 @@ printEvents source = text "events {"
 	$$ nest 5 (printMaybe (printSimpleInstruction "worker_aio_requests") (eWorkerAioRequests source))
 	$$ nest 5 (printMaybe (printSimpleInstruction "worker_connections") (eWorkerConnections source))
 	$$ text "}"
+--}}}
 
---Function that will print the http context
+--{{{ Function that will print the http context
 printHttp :: Http -> Doc
 printHttp source = text "http {"
 	$$ nest 5 (printMaybe printAccessRules (hAccessRule source))
@@ -188,13 +192,15 @@ printHttp source = text "http {"
 	$$ nest 5 (printMaybe (printSimpleInstruction "variables_hash_max_size") (hVariablesHashMaxSize source))
 	$$ nest 5 (printMaybe printServers (hServer source))
 	$$ text "}"
+--}}}
 
---Function that will print a list of servers context
+--{{{ Function that will print a list of servers context
 printServers :: [Server] -> Doc
 printServers [] = empty
 printServers (x:xs) = printServer x $$ printServers xs
+--}}}
 
---Function that will print a server context
+--{{{ Function that will print a server context
 printServer :: Server -> Doc
 printServer source = text "server {"
 	$$ nest 5 (printMaybe printAccessRules (sAccessRule source))
@@ -336,13 +342,15 @@ printServer source = text "server {"
 	$$ nest 5 (printMaybe (printSimpleInstruction "underscore_in_headers") (sUnderscoresInHeaders source))
 	$$ nest 5 (printMaybe printLocations (sLocation source))
 	$$ text "}"
+--}}}
 
---Function that will print a list of location context
+--{{{ Function that will print a list of location context
 printLocations :: [Location] -> Doc
 printLocations [] = empty
 printLocations (x:xs) = printLocation x $$ printLocations xs
+--}}}
 
---Function that will print a server context
+--{{{ Function that will print a server context
 printLocation :: Location -> Doc
 printLocation source = text "location" <+> (printMaybe printValueInstruction (lLocationPath source)) <+> text "{"
 	$$ nest 5 (printMaybe printAccessRules (lAccessRule source))
@@ -387,7 +395,7 @@ printLocation source = text "location" <+> (printMaybe printValueInstruction (lL
 	$$ nest 5 (printMaybe (printSimpleInstruction "gzip_vary") (lGzipVary source))
 	$$ nest 5 (printMaybe (printSimpleInstruction "if_modified_since") (lIfModifiedSince source))
 	$$ nest 5 (printMaybe (printListInstruction "include") (lInclude source))
-	$$ nest 5 (printMaybe (printSingleInstruction "internal") (lInternal source))-- INTERNAL
+	$$ nest 5 (printMaybe (printSingleInstruction "internal") (lInternal source))
 	$$ nest 5 (printMaybe (printSimpleInstruction "keepalive_disable") (lKeepaliveDisable source))
 	$$ nest 5 (printMaybe (printSimpleInstruction "keepalive_requests") (lKeepaliveRequests source))
 	$$ nest 5 (printMaybe (printSimpleInstruction "keepalive_timeout") (lKeepaliveTimeout source))
@@ -452,26 +460,31 @@ printLocation source = text "location" <+> (printMaybe printValueInstruction (lL
 	$$ nest 5 (printMaybe (printSimpleInstruction "types_hash_max_size") (lTypesHashMaxSize source))
 	$$ nest 5 (printMaybe printLocations (lLocation source))
 	$$ text "}"
+--}}}
 
-
---Function that will print the access rules (allow and deny)
+--{{{ Function that will print the access rules (allow and deny)
 printAccessRules :: [(String,String)] -> Doc
 printAccessRules [] = empty
-printAccessRules (x:xs) = text (fst x) <+> text (snd x) <> semi $$ printAccessRules xs 
+printAccessRules (x:xs) = text (fst x) <+> text (snd x) <> semi $$ printAccessRules xs
+--}}}
 
---Function that just prints the instruction
+--{{{ Function that just prints the instruction
 printSingleInstruction :: String -> String -> Doc
 printSingleInstruction instruction value = text instruction <> semi
+--}}}
 
---Functionn that prints a simple instruction
+--{{{ Functionn that prints a simple instruction
 printSimpleInstruction :: String -> String -> Doc
 printSimpleInstruction instruction value = text instruction <+> text value <> semi
+--}}}
 
---Function that prints a list of the same instructions from a list of values
+--{{{ Function that prints a list of the same instructions from a list of values
 printListInstruction :: String -> [String] -> Doc
 printListInstruction instruction [] = empty
 printListInstruction instruction (x:xs) = printSimpleInstruction instruction x $$ printListInstruction instruction xs
+--}}}
 
---Function that prints a Nginx source
+--{{{ Function that prints a Nginx source
 printNginxConf :: IO ()
 printNginxConf = parseTreeNginx "nginx.conf" >>= \(Right tree) -> print (printNginx (createSourceNginx tree))
+--}}}

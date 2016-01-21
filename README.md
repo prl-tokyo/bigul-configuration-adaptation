@@ -37,6 +37,6 @@ Self-adaptation for configuration files with BiGUL
   - extractConfigToFile: performs the *get* and rewrites the view file.
   - putbackConfigToFile: performs the *putback* and rewrites the source configuration file.
 
-  Some changes can be done in either in the configuration files or in the view files in order to test our program. However, some very specific instructions are not handled.
+  Some changes can be done either in the configuration files or in the view files in order to test our program. However, some very specific instructions are not handled.
   
   **Warning**: if changes are made to the view file, the program needs to be reloaded by running ":r" in ghc in order for these changes to be taken into account. This is due to the view file being imported when the BX program loads and not dynamically when running a command.

@@ -1,7 +1,8 @@
 {-# LANGUAGE TypeOperators, TypeFamilies, FlexibleContexts, DeriveGeneric  #-}
---Test transfo for webserver source--
 
+---------
 --IMPORTS
+---------
 ----BiGUL imports
 import Generics.BiGUL
 import Generics.BiGUL.AST
@@ -15,10 +16,10 @@ import TreeConfigNginxFiller
 ----nginx imports
 import Nginx_output
 import TypeFiles.NginxTypes
-
-import TypeFiles.Common
 import NginxDefaultValues
+import TypeFiles.Common
 
+--source and view records defined as BiGUL types
 deriveBiGULGeneric ''NginxWebserver
 deriveBiGULGeneric ''Events
 deriveBiGULGeneric ''Http
@@ -29,25 +30,22 @@ deriveBiGULGeneric ''CommonWebserver
 deriveBiGULGeneric ''VServer
 deriveBiGULGeneric ''VLocation
 
---sample view for testing
+--importing view
 nginxView' :: CommonWebserver
 nginxView' = nginxOutput
 
 
+-----------------
 --TRANSFORMATIONS
+-----------------
 --global transformation
 transNginx :: MonadError' e m => DefaultValues -> BiGUL m NginxWebserver CommonWebserver
 transNginx defaults = $(rearrAndUpdate [p| CommonWebserver { 
-    {-serving static content-}
     vRoot = root, 
     vIndex = index, 
-    {-client connections-}
     vKeepaliveTimeout = kaTimeout, 
     vKeepaliveMaxRequests = kaMaxRequests, 
-    {-speed/quality-}
     vSendfile = sendfile, 
-    --vLogLevel = logLevel,  
-    {-ssl-}
     vSSL = ssl, 
     vSSLCACertificate = caCertif, 
     vSSLCARevocationFile = caRevocFile, 
@@ -105,23 +103,20 @@ transNginx defaults = $(rearrAndUpdate [p| CommonWebserver {
 --servers transformation
 transServer :: MonadError' e m => DefaultValues -> BiGUL m [Server] [VServer]
 transServer defaults = Align
--- source condition
+    --source condition
     (\ _ -> return True)
-    -- match
+    --match
+    --defines on which field the records will match between source and view
     (\ (Server {sServerName = (Just sName)} ) (VServer {vServNames = vName} ) -> return ((head sName) == (head vName)))
-    -- b
+    --trans
     ($(rearrAndUpdate [p| VServer { 
         vListen = listen, 
         vServNames = servNames, 
-        {-serving static content-}
         vServRoot = servRoot, 
         vServIndex = servIndex, 
-        {-client connections-}
         vServKeepaliveTimeout = servKaTimeout, 
         vServKeepaliveMaxRequests = servKaMaxRequests, 
-        {-speed/quality-}
         vServSendfile = servSendfile, 
-        {-ssl-}
         vServSSL = servSSL, 
         vServSSLCACertificate = servCaCertif, 
         vServSSLCARevocationFile = servCaRevocFile, 
@@ -175,18 +170,15 @@ transServer defaults = Align
                                ] 
     |] ))
     --create
+    --adds a new server to the source if a new one was added to the view
     (\ VServer { 
         vListen = listen, 
         vServNames = servNames, 
-        {-serving static content-}
         vServRoot = servRoot, 
         vServIndex = servIndex, 
-        {-client connections-}
         vServKeepaliveTimeout = servKaTimeout, 
         vServKeepaliveMaxRequests = servKaMaxRequests, 
-        {-speed/quality-}
         vServSendfile = servSendfile, 
-        {-ssl-}
         vServSSL = servSSL, 
         vServSSLCACertificate = servCaCertif, 
         vServSSLCARevocationFile = servCaRevocFile, 
@@ -344,17 +336,15 @@ transServer defaults = Align
 --locations transformation
 transLocation :: MonadError' e m => DefaultValues -> BiGUL m [Location] [VLocation]
 transLocation defaults = Align
-    -- source condition
+    --source condition
     (\ _ -> return True)
-    -- match
+    --match
+    --defines on which field the records will match between source and view
     (\ (Location { lLocationPath = (Just sPath) } ) (VLocation { vLocationPath = vPath } ) -> return (sPath == vPath))
-    -- b
+    --trans
     ($(rearrAndUpdate [p| VLocation {
         vLocationPath = locPath, 
-        {-serving static content-}
         vLocIndex = locIndex, 
-        {-client connections-}
-        {-speed/quality-}
         vLocSendfile = locSendfile
     } |] [p| Location {
         lLocationPath = locPath, 
@@ -364,13 +354,11 @@ transLocation defaults = Align
              locIndex = addDefault (d_index defaults);
              locSendfile = addDefault (d_send_file defaults)
     |]))
-    -- create
+    --create
+    --adds a new location to the source if a new one was added to the view
     (\ VLocation {
         vLocationPath = locPath, 
-        {-serving static content-}
         vLocIndex = locIndex, 
-        {-client connections-}
-        {-speed/quality-}
         vLocSendfile = locSendfile
     } -> return Location {
         lLocationPath = emptyCheck locPath, 
@@ -487,8 +475,10 @@ transLocation defaults = Align
     (\ _ -> return Nothing)
 
 
-
+------------------------
 --DEFAULT VALUES GESTION
+------------------------
+--defaults gestion for simple fields
 addDefault :: MonadError' e m => String -> BiGUL m (Maybe String) String
 addDefault def = CaseV [ ((return . (== def)), 
     (CaseS [ $(normal [p| Nothing |]) $ Rearr (RConst def) (EIn (ELeft (EConst ()))) Replace, 
@@ -498,6 +488,7 @@ addDefault def = CaseV [ ((return . (== def)),
     ($(rearr [| \ x -> (Just x) |]) Replace) )
                        ]
 
+--defaults gestion for list fields
 addDefaultList :: MonadError' e m => String -> BiGUL m (Maybe [String]) [String]
 addDefaultList def = CaseV [ ((return . (== [def])), 
     (CaseS [ $(normal [p| Nothing |]) $ Rearr (RConst [def]) (EIn (ELeft (EConst ()))) Replace, 
@@ -507,6 +498,7 @@ addDefaultList def = CaseV [ ((return . (== [def])),
     ($(rearr [| \ x -> (Just x) |]) Replace) )
                            ]
 
+--defaults gestion for the VerifyClient directive
 verifyClientDefault :: MonadError' e m => String -> BiGUL m (Maybe String) String
 verifyClientDefault def = CaseV [ ((return . (liftM2 (&&) (== def) (== "yes"))), 
     (CaseS [ $(normal [p| Nothing |]) $ Rearr (RConst def) (EIn (ELeft (EConst ()))) Replace, 
@@ -529,21 +521,15 @@ verifyClientDefault def = CaseV [ ((return . (liftM2 (&&) (== def) (== "yes"))),
                                 ]
 
 
-
---functions for testing purpose
-testPut :: BiGUL (Either ErrorInfo) s v -> s -> v -> Either ErrorInfo s
-testPut u s v = catchBind (put u s v) (\s' -> Right s') (\e -> Left e)
-
-testGet :: BiGUL (Either ErrorInfo) s v -> s -> Either ErrorInfo v
-testGet u s = catchBind (get u s) (\v' -> Right v') (\e -> Left e)
-
-
-
+------------
 --OPERATIONS
---extract configuration from file to view
+------------
+--performs get and show extracted view in console
+--does not override existing view
 getNginx1 x = (catchBind (get (transNginx defaults) x) (\v -> Right (show v)) (\e -> Left e))
 extractConfig = parseTreeNginx "nginx.conf" >>= \(Right tree) -> return (createSourceNginx tree) >>= return . getNginx1
 
+--performs get and rewrites view file
 extractConfigToFile = do
   content <- extractConfig
   case content of
@@ -551,10 +537,12 @@ extractConfigToFile = do
     Right r -> writeFile "Nginx_output.hs" ("module Nginx_output where"++"\n"++"import TypeFiles.Common"++"\n"++"nginxOutput :: CommonWebserver"++"\n"++"nginxOutput = "++r)
 
 
---put view back in source and print
+--performs putback and show new source in console
+--does not override existing source config file
 putNginx1 x = catchBind (put (transNginx defaults) x nginxView') (Right . printNginx) Left
 putbackConfig = parseTreeNginx "nginx.conf" >>= \(Right tree) -> return (createSourceNginx tree) >>= return . putNginx1
 
+--performs putback and rewrites source config file
 putbackConfigToFile = do
   content <- putbackConfig
   case content of
@@ -562,14 +550,29 @@ putbackConfigToFile = do
     Right r -> writeFile "nginx.conf" ((show r))
 
 
+-------------------------------------
+--OTHER FUNCTIONS FOR TESTING PURPOSE
+-------------------------------------
+testPut :: BiGUL (Either ErrorInfo) s v -> s -> v -> Either ErrorInfo s
+testPut u s v = catchBind (put u s v) (\s' -> Right s') (\e -> Left e)
+
+testGet :: BiGUL (Either ErrorInfo) s v -> s -> Either ErrorInfo v
+testGet u s = catchBind (get u s) (\v' -> Right v') (\e -> Left e)
+
 --demo function for showing source
 showSource = parseTreeNginx "nginx.conf" >>= \(Right tree) -> return (createSourceNginx tree) >>= return . show
 
 
+-----------------------
 --OTHER ANNEX FUNCTIONS
+-----------------------
+--replaces an empty field by Nothing
+--used when creating a new element in the source
 emptyCheck :: String -> Maybe String
 emptyCheck input = if (input == "") then Nothing else (Just input)
 
+--replaces an empty list by Nothing
+--used when creating a new element in the source
 emptyListCheck :: [String] -> Maybe [String]
 emptyListCheck input = if (input == []) then Nothing else (Just input) 
 

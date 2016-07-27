@@ -22,7 +22,7 @@ data CommonWebserver = CommonWebserver {
     vSSLVerifyDepth :: VerifyDepth, 
 
     vServers :: [VServer] 
-} deriving (Show)
+} deriving (Show, Eq)
 
 
 data VServer = VServer { 

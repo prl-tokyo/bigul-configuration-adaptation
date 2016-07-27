@@ -1012,7 +1012,10 @@ printFile source = text "<Files" <>
 	$$ nest 5 (printMaybe
 	printRequireCons
 	(fRequireCons source))
-	$$ text "</Files>"
+        $$ case (noMaybe (fMatch source)) of
+           True -> text "</FilesMatch>"
+           False -> text "</Files>"
+
 --}}}
 
 --{{{ Function that prints a list of Location context

@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeOperators, TypeFamilies, FlexibleContexts, DeriveGeneric  #-}
 
+module TransfoApache where
 ---------
 --IMPORTS
 ---------
@@ -564,6 +565,8 @@ verifyClientDefault def = CaseV [ ((return . (liftM2 (&&) (== def) (== "yes"))),
 --does not override existing view
 getApache1 x = (catchBind (get (transApache defaults) x) (\v -> Right (show v)) (\e -> Left e))
 extractConfig = parseTreeApache "apache.conf" >>= \(Right tree) -> return (createSourceApache tree) >>= return . getApache1
+
+extractConfig' filename = parseTreeApache filename >>= \(Right tree) -> return (createSourceApache tree) >>= return . getApache1
 
 --performs get and rewrites view file
 extractConfigToFile = do

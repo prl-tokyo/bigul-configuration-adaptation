@@ -74,10 +74,10 @@ adapter reader writer monitor bx = do
 
 adaptContentType :: Environment -> CommonWebserver -> CommonWebserver
 adaptContentType env abstract = 
-  if avgResponseTimeLastMinute env >= 1000
+  if avgResponseTimeLastMinute env >= 1000000
     then trace "serve lower fidelity" $ lowerFidelity abstract
     else 
-      if avgResponseTimeLastMinute env < 500
+      if avgResponseTimeLastMinute env < 100000
         then trace "serve higher fidelity" $ higherFidelity abstract
         else abstract
 

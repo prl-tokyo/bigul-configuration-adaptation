@@ -1,4 +1,10 @@
+{-# LANGUAGE TypeOperators, TypeFamilies, FlexibleContexts, DeriveGeneric  #-}
 module TypeFiles.Common where
+
+import Generics.BiGUL
+import Generics.BiGUL.AST
+import Generics.BiGUL.TH
+import GHC.Generics
 
 data CommonWebserver = CommonWebserver { 
     {-serving static content-}
@@ -80,3 +86,6 @@ type SessionTimeout = String --"seconds" N:SslSessionTimeout A:SSLSessionCacheTi
 type VerifyClient = String --no|yes|optional|optional_no_ca
 type VerifyDepth = String
 
+deriveBiGULGeneric ''CommonWebserver
+deriveBiGULGeneric ''VServer
+deriveBiGULGeneric ''VLocation

@@ -412,7 +412,7 @@ printHttp source = text "http {"
 	(printSimpleInstruction "send_timeout")
 	(hSendTimeout source))
 	$$ nest 5 (printMaybe
-	(printSimpleInstruction "send_file")
+	(printSimpleInstruction "sendfile")
 	(hSendFile source))
 	$$ nest 5 (printMaybe
 	(printSimpleInstruction "send_file_max_chunks")

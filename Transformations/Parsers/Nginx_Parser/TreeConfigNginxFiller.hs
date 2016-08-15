@@ -28,7 +28,7 @@ instruction ::: Instruction
     / "types" [a-z A-Z 0-9 \- _ { ; \n \t]+ "}" { ("type",putBrace $1) }
     / "internal;" { ("internal","on") }
     / "#ID" [a-z 0-9]+ { ("ID",$1) }
-    / [0-9 a-z A-Z _ / \ ' : = ! ~ ^ { } \[ \] \- \. \* $ "]+ ';' 
+    / [0-9 a-z A-Z _ / \ ' : = ! ~ ^ , { } \[ \] \- \. \* $ "]+ ';' 
 	{ removeFirstSpace (break (==' ') $1) }
 block ::: TreeFile 
     = "location" [a-z A-Z 0-9 / \- \_]* "{" directive* "}" 

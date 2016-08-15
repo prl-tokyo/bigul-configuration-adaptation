@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeOperators, TypeFamilies, FlexibleContexts, DeriveGeneric  #-}
 
+module TransfoNginx where
 ---------
 --IMPORTS
 ---------
@@ -25,10 +26,6 @@ deriveBiGULGeneric ''Events
 deriveBiGULGeneric ''Http
 deriveBiGULGeneric ''Server
 deriveBiGULGeneric ''Location
-
-deriveBiGULGeneric ''CommonWebserver
-deriveBiGULGeneric ''VServer
-deriveBiGULGeneric ''VLocation
 
 --importing view
 nginxView' :: CommonWebserver

@@ -6,13 +6,10 @@ import Data.Time.Clock.POSIX
 import Data.Aeson
 import Data.Maybe
 import qualified Data.ByteString.Lazy.Char8 as B
-
--- Environment Infomation
-data Environment = Environment { requestsLastMinute :: Int, avgResponseTimeLastMinute :: Int }
-  deriving (Show, Eq)
+import MonitorCommon
 
 -- Apache Log Type
--- A JSON format is assume:
+-- A JSON format is assumed:
 --     LogFormat "{\"responseTime\" : %D, \"stamp\" : %{sec}t}" monitorJSON 
 data ApacheLogReq = ApacheLogReq{ responseTime :: Int, stamp :: Int } deriving (Show, Generic)
 

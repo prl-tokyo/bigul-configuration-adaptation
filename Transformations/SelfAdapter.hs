@@ -14,10 +14,17 @@ import GHC.Generics
 import ApachePrettyPrinter
 import ApacheSourceCreator
 import TreeConfigApacheFiller
+import NginxPrettyPrinter
+import NginxSourceCreator
+import TreeConfigNginxFiller
 
-----apache imports
+----server imports
 import TypeFiles.ApacheTypes
 import ApacheDefaultValues
+
+import TypeFiles.NginxTypes
+import NginxDefaultValues
+
 import TypeFiles.Common
 
 ----io
@@ -38,8 +45,11 @@ import Text.Parsec.Error
 import Data.Either
 import Debug.Trace
 
+import MonitorCommon
 import ApacheMonitor
+import NginxMonitor
 import TransfoApache
+import TransfoNginx
 
 adapter :: IO a -> (a -> IO ()) -> IO Environment -> BiGUL (Either ErrorInfo) a CommonWebserver -> IO ()
 
@@ -86,6 +96,7 @@ lowerFidelity cmm = cmm{vServers = lower (vServers cmm)}
   where lower [] = []
         lower (x:xs) 
           | vServRoot x == "/var/www/blog" = x{vServRoot = "/var/www/blog-low"} : xs
+          | vServRoot x == "/var/www/blog/" = x{vServRoot = "/var/www/blog-low/"} : xs
           | True = x : lower xs
 
 higherFidelity :: CommonWebserver -> CommonWebserver
@@ -93,6 +104,7 @@ higherFidelity cmm = cmm{vServers = higher (vServers cmm)}
   where higher [] = []
         higher (x:xs) 
           | vServRoot x == "/var/www/blog-low" = x{vServRoot = "/var/www/blog"} : xs
+          | vServRoot x == "/var/www/blog-low/" = x{vServRoot = "/var/www/blog/"} : xs
           | True = x : higher xs
 
 
@@ -120,9 +132,39 @@ apacheWriter filename src = do
   -- print text
   writeFile filename (show text)
 
+nginxReader :: String -> IO NginxWebserver
+nginxReader filename = do
+  res <- parseTreeNginx filename
+  if isLeft res 
+    then fail "Parser failed"
+    else do
+      let (Right tree) = res
+      return (createSourceNginx tree)
+
+nginxWriterReal :: String -> NginxWebserver -> IO ()
+nginxWriterReal filename src = do
+  let text = printNginx src
+  writeFile filename (show text)
+  system "sudo nginx -s reload"
+  return ()
+
+nginxWriter :: String -> NginxWebserver -> IO ()
+nginxWriter filename src = do
+  let text = printNginx src
+  putStrLn "write configuration:"
+  print text
+  writeFile filename (show text)
+
 main = do
   putStrLn "Start adapter..."
-  adapter (apacheReader "/etc/apache2/apache2.conf")
-          (apacheWriterReal "/etc/apache2/apache2.conf")
-          apacheMonitor
-          (transApache defaults)
+  adapter (nginxReader "/etc/nginx/nginx.conf")
+          (nginxWriterReal "/etc/nginx/nginx.conf")
+          nginxMonitor
+          (transNginx NginxDefaultValues.defaults)
+
+-- main = do
+--   putStrLn "Start adapter..."
+--   adapter (apacheReader "/etc/apache2/apache2.conf")
+--           (apacheWriterReal "/etc/apache2/apache2.conf")
+--           apacheMonitor
+--           (transApache ApacheDefaultValues.defaults)

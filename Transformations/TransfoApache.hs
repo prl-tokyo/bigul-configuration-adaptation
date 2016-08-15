@@ -28,10 +28,6 @@ deriveBiGULGeneric ''Location
 deriveBiGULGeneric ''Files
 deriveBiGULGeneric ''DirDirectives
 
-deriveBiGULGeneric ''CommonWebserver
-deriveBiGULGeneric ''VServer
-deriveBiGULGeneric ''VLocation
-
 --importing view
 apacheView' :: CommonWebserver
 apacheView' = apacheOutput

@@ -15,7 +15,6 @@ import ApachePrettyPrinter
 import ApacheSourceCreator
 import TreeConfigApacheFiller
 ----apache imports
-import Apache_output
 import TypeFiles.ApacheTypes
 import ApacheDefaultValues
 import TypeFiles.Common
@@ -28,9 +27,6 @@ deriveBiGULGeneric ''Location
 deriveBiGULGeneric ''Files
 deriveBiGULGeneric ''DirDirectives
 
---importing view
-apacheView' :: CommonWebserver
-apacheView' = apacheOutput
 
 -----------------
 --TRANSFORMATIONS
@@ -43,6 +39,7 @@ transApache defaults = $(rearrAndUpdate [p| CommonWebserver {
     vKeepaliveTimeout = kaTimeout, 
     vKeepaliveMaxRequests = kaMaxRequests, 
     vSendfile = sendfile, 
+    {-
     vSSL = ssl, 
     vSSLCACertificate = caCertif, 
     vSSLCARevocationFile = caRevocFile, 
@@ -53,6 +50,7 @@ transApache defaults = $(rearrAndUpdate [p| CommonWebserver {
     vSSLProtocols = protocols, 
     vSSLVerifyClient = verifyClient, 
     vSSLVerifyDepth = verifyDepth, 
+    -}
     vServers = servers
 }
  |] [p| ApacheWebserver { 
@@ -61,6 +59,7 @@ transApache defaults = $(rearrAndUpdate [p| CommonWebserver {
     aEnableSendfile = sendfile, 
     aKeepAliveTimeout = kaTimeout, 
     aMaxKeepAliveRequests = kaMaxRequests, 
+    {-
     aSSLEngine = ssl, 
     aSSLCACertificateFile = caCertif, 
     aSSLCARevocationFile = caRevocFile, 
@@ -71,6 +70,7 @@ transApache defaults = $(rearrAndUpdate [p| CommonWebserver {
     aSSLProtocol = protocols, 
     aSSLVerifyClient = verifyClient, 
     aSSLVerifyDepth = verifyDepth, 
+    -}
     aVirtualHosts = servers 
 }
  |] [d| root = addDefault (d_DocumentRoot defaults);
@@ -78,6 +78,7 @@ transApache defaults = $(rearrAndUpdate [p| CommonWebserver {
         kaTimeout = addDefault (d_KeepAliveTimeout defaults);
         kaMaxRequests = addDefault (d_MaxKeepAliveRequests defaults);
         sendfile = addDefault (d_EnableSendfile defaults);
+        {-
         ssl = addDefault (d_SSLEngine defaults);
         caCertif = addDefault (d_SSLCACertificateFile defaults);
         caRevocFile = addDefault (d_SSLCARevocationFile defaults);
@@ -88,6 +89,7 @@ transApache defaults = $(rearrAndUpdate [p| CommonWebserver {
         protocols = addDefault (d_SSLProtocol defaults);
         verifyClient = verifyClientDefault (d_SSLVerifyClient defaults);
         verifyDepth = addDefault (d_SSLVerifyDepth defaults)
+        -}
         servers = CaseV [ 
             $(branch [p| [] |]) $ $(rearr [| \ [] -> Nothing |]) Replace, 
             $(branch [p| (_:_) |]) $ (Compose ($(rearr [| \ x -> (Just x) |]) Replace) (transServer defaults))
@@ -111,6 +113,7 @@ transServer defaults = Align
         vServKeepaliveTimeout = servKaTimeout, 
         vServKeepaliveMaxRequests = servKaMaxRequests, 
         vServSendfile = servSendfile, 
+        {-
         vServSSL = servSSL, 
         vServSSLCACertificate = servCaCertif, 
         vServSSLCARevocationFile = servCaRevocFile, 
@@ -121,6 +124,7 @@ transServer defaults = Align
         vServSSLProtocols = servProtocols, 
         vServSSLVerifyClient = servVerifyClient, 
         vServSSLVerifyDepth = servVerifyDepth, 
+        -}
         vLocations = servLocations
     } |] [p| VirtualHost { 
         sVirtualHostAddress = listen, 
@@ -130,7 +134,7 @@ transServer defaults = Align
         sLocation = servLocations, 
         sMaxKeepAliveRequests = servKaMaxRequests, 
         sServerName = servNames, 
-        sDirectoryIndex = servIndex, 
+        sDirectoryIndex = servIndex {-, 
         sSSLEngine = servSSL, 
         sSSLCACertificateFile = servCaCertif, 
         sSSLCARevocationFile = servCaRevocFile, 
@@ -141,6 +145,7 @@ transServer defaults = Align
         sSSLProtocol = servProtocols, 
         sSSLVerifyClient = servVerifyClient, 
         sSSLVerifyDepth = servVerifyDepth
+        -}
     } |] [d| servRoot = addDefault (d_DocumentRoot defaults);
              servIndex = addDefault (d_DirectoryIndex defaults);
              servKaTimeout = addDefault (d_KeepAliveTimeout defaults);
@@ -148,6 +153,7 @@ transServer defaults = Align
              servSendfile = addDefault (d_EnableSendfile defaults);
              servNames = addDefaultList (d_ServerName defaults);
              listen = addDefaultList (d_Listen defaults);
+             {-
              servSSL = addDefault (d_SSLEngine defaults);
              servCaCertif = addDefault (d_SSLCACertificateFile defaults);
              servCaRevocFile = addDefault (d_SSLCARevocationFile defaults);
@@ -158,6 +164,7 @@ transServer defaults = Align
              servProtocols = addDefault (d_SSLProtocol defaults);
              servVerifyClient = verifyClientDefault (d_SSLVerifyClient defaults);
              servVerifyDepth = addDefault (d_SSLVerifyDepth defaults);
+             -}
              servLocations = CaseV [
                 $(branch [p| [] |]) $ $(rearr [| \ [] -> Nothing |]) Replace,
                 $(branch [p| (_:_) |]) $ (Compose ($(rearr [| \ x -> (Just x) |]) Replace) (transLocation defaults))
@@ -173,6 +180,7 @@ transServer defaults = Align
         vServKeepaliveTimeout = servKaTimeout, 
         vServKeepaliveMaxRequests = servKaMaxRequests, 
         vServSendfile = servSendfile, 
+        {-
         vServSSL = servSSL, 
         vServSSLCACertificate = servCaCertif, 
         vServSSLCARevocationFile = servCaRevocFile, 
@@ -183,6 +191,7 @@ transServer defaults = Align
         vServSSLProtocols = servProtocols, 
         vServSSLVerifyClient = servVerifyClient, 
         vServSSLVerifyDepth = servVerifyDepth, 
+        -}
         vLocations = locations
     } -> return VirtualHost { 
         sVirtualHostAddress = emptyListCheck listen, 
@@ -199,6 +208,7 @@ transServer defaults = Align
         sServerName = emptyListCheck servNames, 
         sDirectoryIndex = emptyCheck servIndex, 
         sCustomLog = Nothing, 
+        {-
         sSSLEngine = emptyCheck servSSL, 
         sSSLCACertificateFile = emptyCheck servCaCertif, 
         sSSLCARevocationFile = emptyCheck servCaRevocFile, 
@@ -210,6 +220,20 @@ transServer defaults = Align
         sSSLSessionCacheTimeout = Nothing, 
         sSSLVerifyClient = emptyCheck servVerifyClient, 
         sSSLVerifyDepth = emptyCheck servVerifyDepth, 
+        -}
+        -------------
+        sSSLEngine = Nothing, 
+        sSSLCACertificateFile = Nothing, 
+        sSSLCARevocationFile = Nothing, 
+        sSSLCertificateFile = Nothing, 
+        sSSLCertificateKeyFile = Nothing,  
+        sSSLCipherSuite = Nothing, 
+        sSSLHonorCipherOrder = Nothing, 
+        sSSLProtocol = Nothing, 
+        sSSLSessionCacheTimeout = Nothing, 
+        sSSLVerifyClient = Nothing, 
+        sSSLVerifyDepth = Nothing, 
+        ------------
         sAcceptPathInfo = Nothing, 
         sAccessFileName = Nothing, 
         sAddDefaultCharset = Nothing, 
@@ -554,6 +578,7 @@ verifyClientDefault def = CaseV [ ((return . (liftM2 (&&) (== def) (== "yes"))),
     ($(rearr [| \ x -> (Just x) |]) Replace) )
                                 ]
 
+{-
 ------------
 --OPERATIONS
 ------------
@@ -596,7 +621,7 @@ testGet u s = catchBind (get u s) (\v' -> Right v') (\e -> Left e)
 
 --demo function for showing source
 showSource = parseTreeApache "apache.conf" >>= \(Right tree) -> return (createSourceApache tree) >>= return . show
-
+-}
 -----------------------
 --OTHER ANNEX FUNCTIONS
 -----------------------

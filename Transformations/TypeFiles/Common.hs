@@ -16,6 +16,7 @@ data CommonWebserver = CommonWebserver {
     {-speed/quality-}
     vSendfile :: String, --Bool
     {-ssl-}
+    {-
     vSSL :: String, --Bool
     vSSLCACertificate :: CACertificate, 
     vSSLCARevocationFile :: CARevocationFile, 
@@ -26,6 +27,7 @@ data CommonWebserver = CommonWebserver {
     vSSLProtocols :: Protocols, 
     vSSLVerifyClient :: VerifyClient, 
     vSSLVerifyDepth :: VerifyDepth, 
+    -}
 
     vServers :: [VServer] 
 } deriving (Show, Eq)
@@ -43,6 +45,7 @@ data VServer = VServer {
     {-speed/quality-}
     vServSendfile :: String, --Bool
     {-ssl-}
+    {-
     vServSSL :: String, --Bool
     vServSSLCACertificate :: CACertificate, 
     vServSSLCARevocationFile :: CARevocationFile, 
@@ -53,6 +56,7 @@ data VServer = VServer {
     vServSSLProtocols :: Protocols, 
     vServSSLVerifyClient :: VerifyClient, 
     vServSSLVerifyDepth :: VerifyDepth, 
+    -}
 
     vLocations :: [VLocation]
 } deriving (Show, Eq)

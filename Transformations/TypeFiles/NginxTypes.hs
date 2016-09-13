@@ -1,4 +1,12 @@
+{-# LANGUAGE TypeOperators, TypeFamilies, FlexibleContexts, DeriveGeneric  #-}
 module TypeFiles.NginxTypes where
+
+
+import Generics.BiGUL
+import Generics.BiGUL.AST
+import Generics.BiGUL.TH
+import Control.Monad
+import GHC.Generics
 
 --Contexts
 data NginxWebserver = NginxWebserver { 
@@ -845,3 +853,10 @@ type SslVerifyDepth = String --"number" default:1
 ----directives never begin by a capital letter
 ----capital letters in this file types stand for underscore separating words
 ----ex : ErrorLog -> error_log
+--source and view records defined as BiGUL types
+--
+deriveBiGULGeneric ''NginxWebserver
+deriveBiGULGeneric ''Events
+deriveBiGULGeneric ''Http
+deriveBiGULGeneric ''Server
+deriveBiGULGeneric ''Location

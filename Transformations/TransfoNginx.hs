@@ -15,21 +15,9 @@ import NginxPrettyPrinter
 import NginxSourceCreator
 import TreeConfigNginxFiller
 ----nginx imports
-import Nginx_output
 import TypeFiles.NginxTypes
 import NginxDefaultValues
 import TypeFiles.Common
-
---source and view records defined as BiGUL types
-deriveBiGULGeneric ''NginxWebserver
-deriveBiGULGeneric ''Events
-deriveBiGULGeneric ''Http
-deriveBiGULGeneric ''Server
-deriveBiGULGeneric ''Location
-
---importing view
-nginxView' :: CommonWebserver
-nginxView' = nginxOutput
 
 
 -----------------
@@ -43,6 +31,7 @@ transNginx defaults = $(rearrAndUpdate [p| CommonWebserver {
     vKeepaliveTimeout = kaTimeout, 
     vKeepaliveMaxRequests = kaMaxRequests, 
     vSendfile = sendfile, 
+    {-
     vSSL = ssl, 
     vSSLCACertificate = caCertif, 
     vSSLCARevocationFile = caRevocFile, 
@@ -53,6 +42,7 @@ transNginx defaults = $(rearrAndUpdate [p| CommonWebserver {
     vSSLProtocols = protocols, 
     vSSLVerifyClient = verifyClient, 
     vSSLVerifyDepth = verifyDepth, 
+    -}
     vServers = servers
 }
  |] [p| NginxWebserver { 
@@ -62,6 +52,7 @@ transNginx defaults = $(rearrAndUpdate [p| CommonWebserver {
         hKeepaliveTimeout = kaTimeout, 
         hKeepaliveRequests = kaMaxRequests, 
         hSendFile = sendfile, 
+        {-
         hSsl = ssl, 
         hSslCertificate = certif, 
         hSslCertificateKey = certifKey, 
@@ -72,6 +63,7 @@ transNginx defaults = $(rearrAndUpdate [p| CommonWebserver {
         hSslProtocols = protocols, 
         hSslVerifyClient = verifyClient, 
         hSslVerifyDepth = verifyDepth, 
+        -}
         hServer = servers
     } 
 }
@@ -80,6 +72,7 @@ transNginx defaults = $(rearrAndUpdate [p| CommonWebserver {
         kaTimeout = addDefault (d_keepalive_timeout defaults);
         kaMaxRequests = addDefault (d_keepalive_requests defaults);
         sendfile = addDefault (d_send_file defaults);
+        {-
         ssl = addDefault (d_ssl defaults);
         caCertif = addDefault (d_ssl_client_certificate defaults);
         caRevocFile = addDefault (d_ssl_crl defaults);
@@ -90,6 +83,7 @@ transNginx defaults = $(rearrAndUpdate [p| CommonWebserver {
         protocols = addDefault (d_ssl_protocols defaults);
         verifyClient = verifyClientDefault (d_ssl_verify_client defaults);
         verifyDepth = addDefault (d_ssl_verify_depth defaults)
+        -}
         servers = CaseV [ 
             $(branch  [p| [] |]) $ $(rearr [| \ []  -> Nothing |]) Replace, 
             $(branch  [p| (_:_) |]) $ (Compose ($(rearr [| \ x -> (Just x) |]) Replace) (transServer defaults))
@@ -114,6 +108,7 @@ transServer defaults = Align
         vServKeepaliveTimeout = servKaTimeout, 
         vServKeepaliveMaxRequests = servKaMaxRequests, 
         vServSendfile = servSendfile, 
+        {-
         vServSSL = servSSL, 
         vServSSLCACertificate = servCaCertif, 
         vServSSLCARevocationFile = servCaRevocFile, 
@@ -124,6 +119,7 @@ transServer defaults = Align
         vServSSLProtocols = servProtocols, 
         vServSSLVerifyClient = servVerifyClient, 
         vServSSLVerifyDepth = servVerifyDepth, 
+        -}
         vLocations = locations
     } |] [p| Server { 
         sListen = listen, 
@@ -133,6 +129,7 @@ transServer defaults = Align
         sKeepaliveRequests = servKaMaxRequests, 
         sSendFile = servSendfile, 
         sServerName = servNames,  
+        {-
         sSsl = servSSL, 
         sSslCertificate = servCertif, 
         sSslCertificateKey = servCertifKey, 
@@ -143,6 +140,7 @@ transServer defaults = Align
         sSslProtocols = servProtocols, 
         sSslVerifyClient = servVerifyClient, 
         sSslVerifyDepth = servVerifyDepth, 
+        -}
         sLocation = locations
     } |] [d| servRoot = addDefault (d_root defaults);
              servIndex = addDefault (d_index defaults);
@@ -151,6 +149,7 @@ transServer defaults = Align
              servSendfile = addDefault (d_send_file defaults);
              servNames = addDefaultList (d_server_name defaults);
              listen = addDefaultList (d_listen defaults);
+             {-
              servSSL = addDefault (d_ssl defaults);
              servCaCertif = addDefault (d_ssl_client_certificate defaults);
              servCaRevocFile = addDefault (d_ssl_crl defaults);
@@ -161,6 +160,7 @@ transServer defaults = Align
              servProtocols = addDefault (d_ssl_protocols defaults);
              servVerifyClient = verifyClientDefault (d_ssl_verify_client defaults);
              servVerifyDepth = addDefault (d_ssl_verify_depth defaults);
+             -}
              locations = CaseV [ 
                 $(branch  [p| [] |]) $ $(rearr [| \ []  -> Nothing |]) Replace, 
                 $(branch  [p| (_:_) |]) $ (Compose ($(rearr [| \ x -> (Just x) |]) Replace) (transLocation defaults))
@@ -176,6 +176,7 @@ transServer defaults = Align
         vServKeepaliveTimeout = servKaTimeout, 
         vServKeepaliveMaxRequests = servKaMaxRequests, 
         vServSendfile = servSendfile, 
+        {-
         vServSSL = servSSL, 
         vServSSLCACertificate = servCaCertif, 
         vServSSLCARevocationFile = servCaRevocFile, 
@@ -186,6 +187,7 @@ transServer defaults = Align
         vServSSLProtocols = servProtocols, 
         vServSSLVerifyClient = servVerifyClient, 
         vServSSLVerifyDepth = servVerifyDepth, 
+        -}
         vLocations = locations
     } -> return Server { 
         sListen = emptyListCheck listen, 
@@ -201,6 +203,7 @@ transServer defaults = Align
         sErrorLog = Nothing, 
         sGzip = Nothing, 
         sGzipCompLevel = Nothing, 
+        {-
         sSsl = emptyCheck servSSL, 
         sSslCertificate = emptyCheck servCertif, 
         sSslCertificateKey = emptyCheck servCertifKey, 
@@ -212,6 +215,20 @@ transServer defaults = Align
         sSslSessionTimeout = Nothing, 
         sSslVerifyClient = emptyCheck servVerifyClient, 
         sSslVerifyDepth = emptyCheck servVerifyDepth, 
+        -}
+        -------------
+        sSsl = Nothing, 
+        sSslCertificate = Nothing, 
+        sSslCertificateKey = Nothing, 
+        sSslCiphers = Nothing, 
+        sSslClientCertificate = Nothing, 
+        sSslCrl = Nothing, 
+        sSslPreferServerCiphers = Nothing, 
+        sSslProtocols = Nothing, 
+        sSslSessionTimeout = Nothing, 
+        sSslVerifyClient = Nothing, 
+        sSslVerifyDepth = Nothing, 
+        ------------
         sLocation = Nothing,
         sAccessRule = Nothing, 
         sAddHeader = Nothing, 
@@ -518,6 +535,7 @@ verifyClientDefault def = CaseV [ ((return . (liftM2 (&&) (== def) (== "yes"))),
                                 ]
 
 
+{-
 ------------
 --OPERATIONS
 ------------
@@ -558,7 +576,7 @@ testGet u s = catchBind (get u s) (\v' -> Right v') (\e -> Left e)
 
 --demo function for showing source
 showSource = parseTreeNginx "nginx.conf" >>= \(Right tree) -> return (createSourceNginx tree) >>= return . show
-
+-}
 
 -----------------------
 --OTHER ANNEX FUNCTIONS

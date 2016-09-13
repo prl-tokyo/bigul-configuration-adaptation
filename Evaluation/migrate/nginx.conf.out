@@ -1,0 +1,16 @@
+events {
+}
+http {
+     keepalive_timeout 20;
+     root /usr/local/apache/htdocs;
+     sendfile Off;
+     server {
+          index index.html;
+          keepalive_requests 100;
+          keepalive_timeout 5;
+          listen *:80;
+          root /var/www/blog;
+          send_file Off;
+          server_name www.example.com;
+     }
+}

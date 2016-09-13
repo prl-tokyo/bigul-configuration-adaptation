@@ -2,7 +2,6 @@ module Nginx_input_pretty_printed where
 import TypeFiles.NginxTypes
 nginxTestInput :: NginxWebserver
 nginxTestInput = NginxWebserver { 
-    nID = Just "1", 
     nDaemon = Nothing, 
     nErrorLog = Nothing, 
     nEnv = Nothing, 
@@ -138,7 +137,6 @@ nginxTestInput = NginxWebserver {
         hSendFileMaxChunks = Nothing, 
         hServer = Just [
             Server { 
-                sID = Just "1", 
                 sAccessRule = Nothing, 
                 sAddHeader = Nothing, 
                 sAio = Nothing, 
@@ -204,7 +202,6 @@ nginxTestInput = NginxWebserver {
                 sListen = Just ["80"], 
                 sLocation = Just [
                     Location { 
-                        lID = Just "1", 
                         lLocationPath = Nothing, 
                         lAccessRule = Nothing, 
                         lAddHeader = Nothing, 
@@ -392,7 +389,6 @@ nginxTestInput = NginxWebserver {
                 sUnderscoresInHeaders = Nothing
             },
             Server { 
-                sID = Just "2", 
                 sAccessRule = Nothing, 
                 sAddHeader = Nothing, 
                 sAio = Nothing, 

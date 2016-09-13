@@ -21,33 +21,26 @@ import TreeConfigNginxFiller
 ----server imports
 import TypeFiles.ApacheTypes
 import ApacheDefaultValues
+import ApacheInterface
 
 import TypeFiles.NginxTypes
 import NginxDefaultValues
+import NginxInterface
 
 import TypeFiles.Common
 
 ----io
-import Control.Concurrent 
+import Control.Concurrent
 import Data.Time.Clock.POSIX
 import Data.Time.Clock
 import Data.Time.Format
 import System.Process
-
-----parsec
-import Text.Parsec.Prim
-import Text.Parsec.Char
-import Text.Parsec.Text
-import Text.Parsec.Combinator
-import Text.Parsec.Error
 
 ----misc
 import Data.Either
 import Debug.Trace
 
 import MonitorCommon
-import ApacheMonitor
-import NginxMonitor
 import TransfoApache
 import TransfoNginx
 
@@ -107,53 +100,6 @@ higherFidelity cmm = cmm{vServers = higher (vServers cmm)}
           | vServRoot x == "/var/www/blog-low/" = x{vServRoot = "/var/www/blog/"} : xs
           | True = x : higher xs
 
-
-apacheReader :: String -> IO ApacheWebserver
-apacheReader filename = do
-  res <- parseTreeApache filename
-  if isLeft res 
-    then fail "Parser failed"
-    else do
-      let (Right tree) = res
-      return (createSourceApache tree)
-
-
-apacheWriterReal :: String -> ApacheWebserver -> IO ()
-apacheWriterReal filename src = do
-  let text = printApache src
-  writeFile filename (show text)
-  system "sudo apache2ctl restart"
-  return ()
-
-apacheWriter :: String -> ApacheWebserver -> IO ()
-apacheWriter filename src = do
-  let text = printApache src
-  -- putStrLn "write configuration:"
-  -- print text
-  writeFile filename (show text)
-
-nginxReader :: String -> IO NginxWebserver
-nginxReader filename = do
-  res <- parseTreeNginx filename
-  if isLeft res 
-    then fail "Parser failed"
-    else do
-      let (Right tree) = res
-      return (createSourceNginx tree)
-
-nginxWriterReal :: String -> NginxWebserver -> IO ()
-nginxWriterReal filename src = do
-  let text = printNginx src
-  writeFile filename (show text)
-  system "sudo nginx -s reload"
-  return ()
-
-nginxWriter :: String -> NginxWebserver -> IO ()
-nginxWriter filename src = do
-  let text = printNginx src
-  putStrLn "write configuration:"
-  print text
-  writeFile filename (show text)
 
 main = do
   putStrLn "Start adapter..."

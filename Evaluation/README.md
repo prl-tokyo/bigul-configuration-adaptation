@@ -55,4 +55,4 @@ In this experiment, we show that another advantage of our approach is that we ca
 
 In `Transformation/TypeFiles/NginxNewTypes.hs`, we define a hypothetical new version of the nginx web server. The difference is that the ErrorLog option now also takes the files permission as the argument besides the file path. 
 
-In `Transformation/TransfoNginxNewToOld.hs`, we define `transNginxOldToNew`, which transform the new to the old. And we compose it with the old BX between the old nginx server and the abstract.
+In `Transformation/TransfoNginxNewToOld.hs`, we define `transNginxOldToNew`, which transform the new to the old. And we compose it with the old BX between the old nginx server and the abstract. In `Transformation/updateTest.hs` we show that we can succesfully get the abstract model from the new version of nginx.
